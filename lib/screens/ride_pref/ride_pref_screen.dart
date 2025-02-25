@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:week_3_blabla_project/screens/Ride_Screen/ride_screen.dart';
+import 'package:week_3_blabla_project/utils/animations_util.dart';
 
 import '../../model/ride_pref/ride_pref.dart';
 import '../../service/ride_prefs_service.dart';
@@ -27,7 +29,11 @@ class _RidePrefScreenState extends State<RidePrefScreen> {
   onRidePrefSelected(RidePref ridePref) {
  
    // 1 - Navigate to the rides screen (with a buttom to top animation) 
-    
+       Navigator.of(context).push(
+      AnimationUtils.createBottomToTopRoute(
+        RidesScreen(ridePref: ridePref),
+      ),
+    );
   }
 
   @override
@@ -60,7 +66,9 @@ class _RidePrefScreenState extends State<RidePrefScreen> {
 
 
                   // 2.1 Display the Form to input the ride preferences
-                  RidePrefForm(initRidePref: RidePrefService.currentRidePref,),
+                  RidePrefForm(initRidePref: RidePrefService.currentRidePref,
+                    onDone: (ridePref) => onRidePrefSelected(ridePref),
+                  ),
                   SizedBox(height: BlaSpacings.m),
 
 

@@ -18,8 +18,8 @@ import '../../../model/ride_pref/ride_pref.dart';
 /// An optional existing RidePref can be provided for editing.
 class RidePrefForm extends StatefulWidget {
   final RidePref? initRidePref;
-
-  const RidePrefForm({super.key, this.initRidePref});
+  final ValueChanged<RidePref> onDone;
+  const RidePrefForm({super.key, this.initRidePref, required this.onDone});
 
   @override
   State<RidePrefForm> createState() => _RidePrefFormState();
@@ -79,6 +79,18 @@ class _RidePrefFormState extends State<RidePrefForm> {
       setState(() {
         departureDate = pickedDate;
       });
+    }
+  }
+
+  void _handleSubmitForm() {
+    if (isFormValid) {
+      final ridePref = RidePref(
+        departure: departure!,
+        arrival: arrival!,
+        departureDate: departureDate,
+        requestedSeats: requestedSeats.toInt(),
+      );
+      widget.onDone(ridePref);
     }
   }
 
@@ -173,9 +185,7 @@ class _RidePrefFormState extends State<RidePrefForm> {
             width: double.infinity,
             child: BlaButton(
               text: 'Search',
-              onPress: () {
-                // Implement your search logic here
-              },
+              onPress: _handleSubmitForm,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(0),
