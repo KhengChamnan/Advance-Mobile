@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:week_3_blabla_project/screens/ride_pref/widgets/ride_pref_form_search.dart';
 import 'package:week_3_blabla_project/theme/theme.dart';
+import 'package:week_3_blabla_project/utils/animations_util.dart';
 import 'package:week_3_blabla_project/utils/date_time_util.dart';
 import 'package:week_3_blabla_project/widgets/actions/bla_button.dart';
 import 'package:week_3_blabla_project/widgets/display/bla_divider.dart';
@@ -7,17 +9,14 @@ import 'package:week_3_blabla_project/widgets/display/bla_divider.dart';
 import '../../../model/ride/locations.dart';
 import '../../../model/ride_pref/ride_pref.dart';
 
-///
-/// A Ride Preference From is a view to select:
-///   - A depcarture location
+/// A Ride Preference Form allows selecting:
+///   - A departure location
 ///   - An arrival location
 ///   - A date
 ///   - A number of seats
 ///
-/// The form can be created with an existing RidePref (optional).
-///
+/// An optional existing RidePref can be provided for editing.
 class RidePrefForm extends StatefulWidget {
-  // The form can be created with an optional initial RidePref.
   final RidePref? initRidePref;
 
   const RidePrefForm({super.key, this.initRidePref});
@@ -33,12 +32,11 @@ class _RidePrefFormState extends State<RidePrefForm> {
   late int requestedSeats;
   bool isFormValid = false;
 
-  // ----------------------------------
-  // Initialize the Form attributes
-  // ----------------------------------
+  //initialize the state
   @override
   void initState() {
     super.initState();
+    // Initialize from existing RidePref if provided
     departure = widget.initRidePref?.departure;
     arrival = widget.initRidePref?.arrival;
     departureDate = widget.initRidePref?.departureDate ?? DateTime.now();
@@ -48,23 +46,61 @@ class _RidePrefFormState extends State<RidePrefForm> {
   // ----------------------------------
   // Handle events
   // ----------------------------------
+
+  //handle valid suubmit search button
   void validateForm() {
     setState(() {
       isFormValid = departure != null && arrival != null;
     });
   }
 
+  //handle swap locations with icons
   void _switchLocations() {
-    setState(() {
-      final tempLocation = departure;
-      departure = arrival;
-      arrival = tempLocation;
-      validateForm(); // Call this after swapping to update form validity
-    });
-    print("Switching locations");
+    if (departure != null && arrival != null) {
+      setState(() {
+        final tempLocation = departure;
+        departure = arrival;
+        arrival = tempLocation;
+        validateForm();
+      });
+      print("Switching locations");
+    }
   }
 
-  // ----------------------------------
+  //pickingdate for choose date field
+  Future<void> _pickDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: departureDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+    if (pickedDate != null && pickedDate != departureDate) {
+      setState(() {
+        departureDate = pickedDate;
+      });
+    }
+  }
+
+  /// Opens the LocationSearchScreen with a bottom-to-top slide animation.
+  /// Once a location is picked, the provided callback (onLocationSelected) is invoked.
+  void _openLocationPickerDialog(
+    BuildContext context, {
+    required Function(Location) onLocationSelected,
+  }) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => LocationSearchScreen(
+          title: "Select Location",
+          onLocationSelected: (location) {
+            onLocationSelected(location);
+          },
+        ),
+      ),
+    );
+  }
+
+// ----------------------------------
   // Build the widgets
   // ----------------------------------
   @override
@@ -88,37 +124,41 @@ class _RidePrefFormState extends State<RidePrefForm> {
                 _buildLocationRow(
                   label: departure?.name ?? 'Leaving From',
                   icon: Icons.radio_button_unchecked,
+                  endIcon: Icons.swap_vert,
                   onTap: () {
-                    // Implement your location selection logic here
-                    print('Leaving From');
+                    _openLocationPickerDialog(
+                      context,
+                      onLocationSelected: (location) {
+                        setState(() {
+                          departure = location;
+                          validateForm();
+                        });
+                      },
+                    );
                   },
+                  onEndIconTap: _switchLocations,
                 ),
                 const BlaDivider(),
                 _buildLocationRow(
-                    label: arrival?.name ?? 'Going to',
-                    icon: Icons.radio_button_unchecked,
-                    endIcon: Icons.swap_vert,
-                    onTap: () {
-                      // Implement your location selection logic here
-                      print('Going to');
-                    },
-                    onEndIconTap: _switchLocations),
+                  label: arrival?.name ?? 'Going to',
+                  icon: Icons.radio_button_unchecked,
+                  onTap: () {
+                    _openLocationPickerDialog(
+                      context,
+                      onLocationSelected: (location) {
+                        setState(() {
+                          arrival = location;
+                          validateForm();
+                        });
+                      },
+                    );
+                  },
+                ),
                 const BlaDivider(),
                 _buildDateRow(
-                    date: departureDate,
-                    onTap: () async {
-                      final DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: departureDate,
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime(2100),
-                      );
-                      if (pickedDate != null && pickedDate != departureDate) {
-                        setState(() {
-                          departureDate = pickedDate;
-                        });
-                      }
-                    }),
+                  date: departureDate,
+                  onTap: () => _pickDate(context),
+                ),
                 const BlaDivider(),
                 _buildSeatsRow(
                   seats: requestedSeats,
@@ -152,6 +192,8 @@ class _RidePrefFormState extends State<RidePrefForm> {
     );
   }
 
+  /// Builds a row showing location information or a placeholder label.
+  /// Tapping the row triggers onTap, while tapping the optional endIcon triggers onEndIconTap.
   Widget _buildLocationRow({
     required String label,
     required IconData icon,
@@ -171,15 +213,14 @@ class _RidePrefFormState extends State<RidePrefForm> {
               label,
               style: BlaTextStyles.label.copyWith(
                 color: BlaColors.textNormal,
-
-                fontWeight: FontWeight.bold, // <-- make it bold
+                fontWeight: FontWeight.bold,
               ),
             ),
             const Spacer(),
             if (endIcon != null)
               InkWell(
                 onTap: onEndIconTap,
-                child: Icon(endIcon, color: BlaColors.iconNormal),
+                child: Icon(endIcon, color: BlaColors.primary),
               ),
           ],
         ),
@@ -187,6 +228,7 @@ class _RidePrefFormState extends State<RidePrefForm> {
     );
   }
 
+  /// Builds a row for selecting a date.
   Widget _buildDateRow({required DateTime date, void Function()? onTap}) {
     return InkWell(
       onTap: onTap,
@@ -200,7 +242,7 @@ class _RidePrefFormState extends State<RidePrefForm> {
               DateTimeUtils.formatDateTime(date),
               style: BlaTextStyles.label.copyWith(
                 color: BlaColors.textNormal,
-                fontWeight: FontWeight.bold, // <-- make it bold
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
@@ -209,6 +251,7 @@ class _RidePrefFormState extends State<RidePrefForm> {
     );
   }
 
+  /// Builds a row for selecting the number of seats.
   Widget _buildSeatsRow({required int seats, void Function()? onTap}) {
     return InkWell(
       onTap: onTap,
@@ -222,7 +265,7 @@ class _RidePrefFormState extends State<RidePrefForm> {
               '$seats',
               style: BlaTextStyles.label.copyWith(
                 color: BlaColors.textNormal,
-                fontWeight: FontWeight.bold, // <-- make it bold
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
