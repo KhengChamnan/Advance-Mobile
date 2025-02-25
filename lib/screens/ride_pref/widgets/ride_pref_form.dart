@@ -89,8 +89,8 @@ class _RidePrefFormState extends State<RidePrefForm> {
     required Function(Location) onLocationSelected,
   }) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => LocationSearchScreen(
+      AnimationUtils.createBottomToTopRoute(
+        LocationSearchScreen(
           title: "Select Location",
           onLocationSelected: (location) {
             onLocationSelected(location);
