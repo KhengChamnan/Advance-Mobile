@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:week_3_blabla_project/screens/ride_pref/widgets/ride_pref_form_search.dart';
+import 'package:week_3_blabla_project/screens/ride_pref/widgets/ride_pref_form_seat.dart';
 import 'package:week_3_blabla_project/theme/theme.dart';
 import 'package:week_3_blabla_project/utils/animations_util.dart';
 import 'package:week_3_blabla_project/utils/date_time_util.dart';
@@ -67,6 +68,7 @@ class _RidePrefFormState extends State<RidePrefForm> {
     }
   }
 
+
   //pickingdate for choose date field
   Future<void> _pickDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
@@ -111,7 +113,13 @@ class _RidePrefFormState extends State<RidePrefForm> {
       ),
     );
   }
-
+  
+  //handle seat change
+  void _handleSeatsChanged(int newSeats) {
+    setState(() {
+      requestedSeats = newSeats;
+    });
+  }
 // ----------------------------------
   // Build the widgets
   // ----------------------------------
@@ -264,7 +272,16 @@ class _RidePrefFormState extends State<RidePrefForm> {
   /// Builds a row for selecting the number of seats.
   Widget _buildSeatsRow({required int seats, void Function()? onTap}) {
     return InkWell(
-      onTap: onTap,
+      onTap: () async {
+        final result = await Navigator.of(context).push<int>(
+          AnimationUtils.createBottomToTopRoute(
+            SeatBookingScreen(initialSeats: requestedSeats),
+          ),
+        );
+        if (result != null) {
+          _handleSeatsChanged(result);
+        }
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12.0),
         child: Row(
@@ -272,7 +289,7 @@ class _RidePrefFormState extends State<RidePrefForm> {
             Icon(Icons.person_outline, color: BlaColors.iconLight),
             const SizedBox(width: 16),
             Text(
-              '$seats',
+              '$requestedSeats',
               style: BlaTextStyles.label.copyWith(
                 color: BlaColors.textNormal,
                 fontWeight: FontWeight.bold,
@@ -283,4 +300,6 @@ class _RidePrefFormState extends State<RidePrefForm> {
       ),
     );
   }
+
+  
 }

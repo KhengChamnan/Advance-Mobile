@@ -36,38 +36,7 @@ class _RidesScreenState extends State<RidesScreen> {
             // Search TextField
             Padding(
               padding: const EdgeInsets.all(BlaSpacings.m),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search rides...',
-                  hintStyle: BlaTextStyles.body.copyWith(
-                    color: BlaColors.iconLight,
-                  ),
-                  prefixIcon: IconButton(
-                    icon: Icon(Icons.arrow_back, color: BlaColors.iconLight),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.close, color: BlaColors.iconLight),
-                    onPressed: () {
-                      _searchController.clear();
-                      // Optionally, add code here to reset filtered results
-                    },
-                  ),
-                  filled: true,
-                  fillColor: BlaColors.backgroundAccent,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(BlaSpacings.radius),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: BlaSpacings.s,
-                  ),
-                ),
-                onChanged: (query) {
-                  // Add search filtering logic if needed.
-                },
-              ),
+              child: SearchBar(searchController: _searchController),
             ),
             // Test Card takes full width inside the provided horizontal padding
             Padding(
@@ -77,6 +46,51 @@ class _RidesScreenState extends State<RidesScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class SearchBar extends StatelessWidget {
+  const SearchBar({
+    super.key,
+    required TextEditingController searchController,
+  }) : _searchController = searchController;
+
+  final TextEditingController _searchController;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _searchController,
+      decoration: InputDecoration(
+        hintText: 'Search rides...',
+        hintStyle: BlaTextStyles.body.copyWith(
+          color: BlaColors.iconLight,
+        ),
+        prefixIcon: IconButton(
+          icon: Icon(Icons.arrow_back, color: BlaColors.iconLight),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        suffixIcon: IconButton(
+          icon: Icon(Icons.close, color: BlaColors.iconLight),
+          onPressed: () {
+            _searchController.clear();
+            // Optionally, add code here to reset filtered results
+          },
+        ),
+        filled: true,
+        fillColor: BlaColors.backgroundAccent,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(BlaSpacings.radius),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: BlaSpacings.s,
+        ),
+      ),
+      onChanged: (query) {
+        // Add search filtering logic if needed.
+      },
     );
   }
 }
