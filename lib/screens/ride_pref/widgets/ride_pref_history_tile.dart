@@ -8,7 +8,7 @@ import '../../../utils/date_time_util.dart';
 ///
 class RidePrefHistoryTile extends StatelessWidget {
   final RidePref ridePref;
-  final VoidCallback? onPressed;
+  final VoidCallback?   onPressed;
 
   const RidePrefHistoryTile({super.key, required this.ridePref, this.onPressed});
 

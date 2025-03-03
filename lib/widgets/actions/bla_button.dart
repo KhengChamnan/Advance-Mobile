@@ -25,6 +25,7 @@ class BlaButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //Compute Rendering
     final bool isPrimary = buttonType == ButtonType.primary;
     final textColor = isPrimary ? BlaColors.white : BlaColors.primary;
     final backgroundColor = isPrimary ? BlaColors.primary : BlaColors.white;
