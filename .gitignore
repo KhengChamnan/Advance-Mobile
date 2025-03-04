@@ -7,6 +7,8 @@
 !assets/
 !assets/**
 !pubspec.yaml
+!test/
+!test/**
 
 # Ignore build and dependency-related directories/files
 **/build/
