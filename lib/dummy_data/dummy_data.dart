@@ -18,7 +18,7 @@ const List<Location> fakeLocations = [
   Location(name: "Battambang", country: Country.cambodia),
   Location(name: "Sihanoukville", country: Country.cambodia),
   Location(name: "Kampot", country: Country.cambodia),
-  
+
   // UK Cities
   Location(name: "London", country: Country.uk),
   Location(name: "Manchester", country: Country.uk),
@@ -106,6 +106,48 @@ List<RidePreference> fakeRidePrefs = [
 
 // Fake  Users
 List<User> fakeUsers = [
+  // New Cambodian users
+  User(
+    firstName: "Kannika",
+    lastName: "Kan",
+    email: "kannika.chhay@example.com",
+    phone: "+855 12345678",
+    profilePicture: "https://randomuser.me/api/portraits/women/8.jpg",
+    verifiedProfile: true,
+  ),
+  User(
+    firstName: "Chaylim",
+    lastName: "Seng",
+    email: "chaylim.seng@example.com",
+    phone: "+855 23456789",
+    profilePicture: "https://randomuser.me/api/portraits/men/9.jpg",
+    verifiedProfile: true,
+  ),
+  User(
+    firstName: "Mengtech",
+    lastName: "Ly",
+    email: "mengtech.ly@example.com",
+    phone: "+855 34567890",
+    profilePicture: "https://randomuser.me/api/portraits/men/10.jpg",
+    verifiedProfile: true,
+  ),
+  User(
+    firstName: "Limhao",
+    lastName: "Chao",
+    email: "limhao.keo@example.com",
+    phone: "+855 45678901",
+    profilePicture: "https://randomuser.me/api/portraits/men/11.jpg",
+    verifiedProfile: false,
+  ),
+  User(
+    firstName: "Sovanda",
+    lastName: "Ban",
+    email: "sovanda.pich@example.com",
+    phone: "+855 56789012",
+    profilePicture: "https://randomuser.me/api/portraits/women/12.jpg",
+    verifiedProfile: true,
+  ),
+  // Original User
   User(
     firstName: "Alice",
     lastName: "Dupont",
@@ -187,5 +229,6 @@ List<Ride> fakeRides = List.generate(50, (index) {
     driver: driver,
     availableSeats: availableSeats,
     pricePerSeat: pricePerSeat,
+    acceptPets: random.nextBool(),
   );
 });
