@@ -12,6 +12,13 @@ final Random random = Random();
 
 // Fake Cities
 const List<Location> fakeLocations = [
+    // Cambodia Cities
+  Location(name: "Phnom Penh", country: Country.cambodia),
+  Location(name: "Siem Reap", country: Country.cambodia),
+  Location(name: "Battambang", country: Country.cambodia),
+  Location(name: "Sihanoukville", country: Country.cambodia),
+  Location(name: "Kampot", country: Country.cambodia),
+  
   // UK Cities
   Location(name: "London", country: Country.uk),
   Location(name: "Manchester", country: Country.uk),
@@ -55,12 +62,14 @@ const List<Location> fakeLocations = [
   Location(name: "Brest", country: Country.france),
 ];
 
+
+
 // Fake Ride Preferences
 List<RidePreference> fakeRidePrefs = [
   RidePreference(
     departure: fakeLocations[0], // London
     departureDate: DateTime.now().add(Duration(days: 1)), // Tomorrow
-    arrival: fakeLocations[3], // Paris
+    arrival: fakeLocations[3], // LiverPool
     requestedSeats: 2,
   ),
   RidePreference(

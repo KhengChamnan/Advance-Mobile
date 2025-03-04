@@ -21,7 +21,7 @@ class RidePrefService {
   /// Private constructor
   ///
   RidePrefService._internal(this.repository);
-
+  
   ///
   /// Initialize
   ///

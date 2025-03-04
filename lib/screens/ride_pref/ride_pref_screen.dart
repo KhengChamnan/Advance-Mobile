@@ -29,6 +29,8 @@ class _RidePrefScreenState extends State<RidePrefScreen> {
 
     // 1 - Update the current preference
     RidePrefService.instance.setCurrentPreference(newPreference);
+
+    
  
     // 2 - Navigate to the rides screen (with a buttom to top animation)
     await Navigator.of(context).push(AnimationUtils.createBottomToTopRoute(RidesScreen()));
