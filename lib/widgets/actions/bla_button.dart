@@ -1,59 +1,73 @@
 import 'package:flutter/material.dart';
-import 'package:week_3_blabla_project/theme/theme.dart';
+
+import '../../theme/theme.dart';
 
 enum ButtonType { primary, secondary }
 
+///
+/// Button rendering for the whole application
+///
 class BlaButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPress;
-  final ButtonType buttonType;
-  final bool hasIcon;
-  final Icon? icon;
-  final OutlinedBorder? shape;
+  final VoidCallback? onPressed;
+  final ButtonType type;
+  final IconData? icon;
 
-  const BlaButton({
-    Key? key,
-    required this.text,
-    required this.onPress,
-    this.buttonType = ButtonType.primary,
-    this.hasIcon = false,
-    this.icon,
-    this.shape = const RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(BlaSpacings.radius)),
-    ),
-  }) : super(key: key);
+  const BlaButton(
+      {super.key,
+      required this.text,
+      required this.onPressed,
+      this.type = ButtonType.primary,
+      this.icon});
 
   @override
   Widget build(BuildContext context) {
-    final bool isPrimary = buttonType == ButtonType.primary;
-    final textColor = isPrimary ? BlaColors.white : BlaColors.primary;
-    final backgroundColor = isPrimary ? BlaColors.primary : BlaColors.white;
 
-    final textStyle = BlaTextStyles.button.copyWith(
-      color: textColor,
-    );
-    final buttonText = Text(text, style: textStyle);
-    final iconColor = isPrimary ? BlaColors.white : BlaColors.primary;
+    // Compute the rendering
+    Color backgroundColor =
+        type == ButtonType.primary ? BlaColors.primary : BlaColors.white;
 
-    return ElevatedButton(
-      onPressed: onPress,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: backgroundColor,
-        shape: shape,
+    BorderSide border = type == ButtonType.primary
+        ? BorderSide.none
+        : BorderSide(color: BlaColors.greyLight, width: 2);
+
+    Color textColor =
+        type == ButtonType.primary ? BlaColors.white : BlaColors.primary;
+        
+    Color iconColor =
+        type == ButtonType.primary ? BlaColors.white : BlaColors.primary;
+
+
+  	// Create the button icon - if any
+    List<Widget> children = [];
+    if (icon != null) {
+      children.add(Icon(icon, size: 20, color: iconColor,));
+      children.add(SizedBox(width: BlaSpacings.s));
+    }
+
+    // Create the button text
+    Text buttonText =
+        Text(text, style: BlaTextStyles.button.copyWith(color: textColor));
+
+    children.add(buttonText);
+
+    // Render the button
+    return SizedBox(
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          padding: EdgeInsets.symmetric(vertical: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(BlaSpacings.radius),
+          ),
+          side: border,
+        ),
+        onPressed: onPressed,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: children,
+        ),
       ),
-      child: hasIcon
-          ? IconTheme(
-              data: IconThemeData(color: iconColor),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  icon ?? Icon(Icons.accessibility),
-                  SizedBox(width: 4),
-                  buttonText,
-                ],
-              ),
-            )
-          : buttonText,
     );
   }
 }

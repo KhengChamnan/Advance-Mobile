@@ -1,26 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:week_3_blabla_project/screens/ride_pref/widgets/ride_pref_form_search.dart';
-import 'package:week_3_blabla_project/screens/ride_pref/widgets/ride_pref_form_seat.dart';
-import 'package:week_3_blabla_project/theme/theme.dart';
-import 'package:week_3_blabla_project/utils/animations_util.dart';
-import 'package:week_3_blabla_project/utils/date_time_util.dart';
-import 'package:week_3_blabla_project/widgets/actions/bla_button.dart';
-import 'package:week_3_blabla_project/widgets/display/bla_divider.dart';
 
 import '../../../model/ride/locations.dart';
 import '../../../model/ride_pref/ride_pref.dart';
+import '../../../theme/theme.dart';
+import '../../../utils/animations_util.dart';
+import '../../../utils/date_time_util.dart';
+import '../../../widgets/actions/bla_button.dart';
+import '../../../widgets/display/bla_divider.dart';
+import '../../../widgets/inputs/bla_location_picker.dart';
+import 'ride_pref_input_tile.dart';
 
-/// A Ride Preference Form allows selecting:
-///   - A departure location
+///
+/// A Ride Preference From is a view to select:
+///   - A depcarture location
 ///   - An arrival location
 ///   - A date
 ///   - A number of seats
 ///
-/// An optional existing RidePref can be provided for editing.
+/// The form can be created with an existing RidePref (optional).
+///
 class RidePrefForm extends StatefulWidget {
-  final RidePref? initRidePref;
-  final ValueChanged<RidePref> onDone;
-  const RidePrefForm({super.key, this.initRidePref, required this.onDone});
+  const RidePrefForm( {super.key, required this.initialPreference, required this.onSubmit});
+
+  final RidePreference? initialPreference;
+  final Function(RidePreference preference) onSubmit;
 
   @override
   State<RidePrefForm> createState() => _RidePrefFormState();
@@ -31,275 +34,160 @@ class _RidePrefFormState extends State<RidePrefForm> {
   late DateTime departureDate;
   Location? arrival;
   late int requestedSeats;
-  bool isFormValid = false;
 
-  //initialize the state
+  // ----------------------------------
+  // Initialize the Form attributes
+  // ----------------------------------
+
   @override
   void initState() {
     super.initState();
-    // Initialize from existing RidePref if provided
-    departure = widget.initRidePref?.departure;
-    arrival = widget.initRidePref?.arrival;
-    departureDate = widget.initRidePref?.departureDate ?? DateTime.now();
-    requestedSeats = widget.initRidePref?.requestedSeats ?? 1;
+ 
+    if (widget.initialPreference != null) {
+      RidePreference current = widget.initialPreference!;
+      departure = current.departure;
+      arrival = current.arrival;
+      departureDate = current.departureDate;
+      requestedSeats = current.requestedSeats;
+    } else {
+      // If no given preferences, we select default ones :
+      departure = null; // User shall select the departure
+      departureDate = DateTime.now(); // Now  by default
+      arrival = null; // User shall select the arrival
+      requestedSeats = 1; // 1 seat book by default
+    }
   }
 
   // ----------------------------------
   // Handle events
   // ----------------------------------
 
-  //handle valid suubmit search button
-  void validateForm() {
-    setState(() {
-      isFormValid = departure != null && arrival != null;
-    });
-  }
+  void onDeparturePressed() async {
+    // 1- Select a location
+    Location? selectedLocation = await Navigator.of(context)
+        .push<Location>(AnimationUtils.createBottomToTopRoute(BlaLocationPicker(
+      initLocation: departure,
+    )));
 
-  //handle swap locations with icons
-  void _switchLocations() {
-    if (departure != null && arrival != null) {
+    // 2- Update the from if needed
+    if (selectedLocation != null) {
       setState(() {
-        final tempLocation = departure;
-        departure = arrival;
-        arrival = tempLocation;
-        validateForm();
-      });
-      print("Switching locations");
-    }
-  }
-
-
-  //pickingdate for choose date field
-  Future<void> _pickDate(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: departureDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2100),
-    );
-    if (pickedDate != null && pickedDate != departureDate) {
-      setState(() {
-        departureDate = pickedDate;
+        departure = selectedLocation;
       });
     }
   }
 
-  void _handleSubmitForm() {
-    if (isFormValid) {
-      final ridePref = RidePref(
-        departure: departure!,
-        arrival: arrival!,
-        departureDate: departureDate,
-        requestedSeats: requestedSeats.toInt(),
-      );
-      widget.onDone(ridePref);
+  void onArrivalPressed() async {
+    // 1- Select a location
+    Location? selectedLocation = await Navigator.of(context)
+        .push<Location>(AnimationUtils.createBottomToTopRoute(BlaLocationPicker(
+      initLocation: arrival,
+    )));
+
+    // 2- Update the from if needed
+    if (selectedLocation != null) {
+      setState(() {
+        arrival = selectedLocation;
+      });
     }
   }
 
-  /// Opens the LocationSearchScreen with a bottom-to-top slide animation.
-  /// Once a location is picked, the provided callback (onLocationSelected) is invoked.
-  void _openLocationPickerDialog(
-    BuildContext context, {
-    required Function(Location) onLocationSelected,
-  }) {
-    Navigator.of(context).push(
-      AnimationUtils.createBottomToTopRoute(
-        LocationSearchScreen(
-          title: "Select Location",
-          onLocationSelected: (location) {
-            onLocationSelected(location);
-          },
-        ),
-      ),
-    );
+  void onSubmit() {
+    // 1- Check input validity
+    bool hasDeparture = departure != null;
+    bool hasArrival = arrival != null;
+    bool isValid = hasDeparture && hasArrival;
+
+    if (isValid) {
+      // 2 - Create a  new preference
+      RidePreference newPreference = RidePreference(
+          departure: departure!,
+          departureDate: departureDate,
+          arrival: arrival!,
+          requestedSeats: requestedSeats);
+
+      // 3 - Callback withg the new preference
+      widget.onSubmit(newPreference);
+    }
   }
-  
-  //handle seat change
-  void _handleSeatsChanged(int newSeats) {
+
+  void onSwappingLocationPressed() {
     setState(() {
-      requestedSeats = newSeats;
+      // We switch only if both departure and arrivate are defined
+      if (departure != null && arrival != null) {
+        Location temp = departure!;
+        departure = Location.copy(arrival!);
+        arrival = Location.copy(temp);
+      }
     });
   }
-// ----------------------------------
+
+  // ----------------------------------
+  // Compute the widgets rendering
+  // ----------------------------------
+  String get departureLabel =>
+      departure != null ? departure!.name : "Leaving from";
+  String get arrivalLabel => arrival != null ? arrival!.name : "Going to";
+
+  bool get showDeparturePLaceHolder => departure == null;
+  bool get showArrivalPLaceHolder => arrival == null;
+
+  String get dateLabel => DateTimeUtils.formatDateTime(departureDate);
+  String get numberLabel => requestedSeats.toString();
+
+  bool get switchVisible => arrival != null && departure != null;
+
+  // ----------------------------------
   // Build the widgets
   // ----------------------------------
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            // Reduce bottom padding to bring the BlaButton closer
-            padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 0),
+            padding: const EdgeInsets.symmetric(horizontal: BlaSpacings.m),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildLocationRow(
-                  label: departure?.name ?? 'Leaving From',
-                  icon: Icons.radio_button_unchecked,
-                  endIcon: Icons.swap_vert,
-                  onTap: () {
-                    _openLocationPickerDialog(
-                      context,
-                      onLocationSelected: (location) {
-                        setState(() {
-                          departure = location;
-                          validateForm();
-                        });
-                      },
-                    );
-                  },
-                  onEndIconTap: _switchLocations,
+                // 1 - Input the ride departure
+                RidePrefInputTile(
+                  isPlaceHolder: showDeparturePLaceHolder,
+                  title: departureLabel,
+                  leftIcon: Icons.location_on,
+                  onPressed: onDeparturePressed,
+                  rightIcon: switchVisible ? Icons.swap_vert : null,
+                  onRightIconPressed:
+                      switchVisible ? onSwappingLocationPressed : null,
                 ),
                 const BlaDivider(),
-                _buildLocationRow(
-                  label: arrival?.name ?? 'Going to',
-                  icon: Icons.radio_button_unchecked,
-                  onTap: () {
-                    _openLocationPickerDialog(
-                      context,
-                      onLocationSelected: (location) {
-                        setState(() {
-                          arrival = location;
-                          validateForm();
-                        });
-                      },
-                    );
-                  },
-                ),
+
+                // 2 - Input the ride arrival
+                RidePrefInputTile(
+                    isPlaceHolder: showArrivalPLaceHolder,
+                    title: arrivalLabel,
+                    leftIcon: Icons.location_on,
+                    onPressed: onArrivalPressed),
                 const BlaDivider(),
-                _buildDateRow(
-                  date: departureDate,
-                  onTap: () => _pickDate(context),
-                ),
+
+                // 3 - Input the ride date
+                RidePrefInputTile(
+                    title: dateLabel,
+                    leftIcon: Icons.calendar_month,
+                    onPressed: () => {}),
                 const BlaDivider(),
-                _buildSeatsRow(
-                  seats: requestedSeats,
-                  onTap: () {
-                    // Implement your seat selection logic here
-                  },
-                ),
+
+                // 4 - Input the requested number of seats
+                RidePrefInputTile(
+                    title: numberLabel,
+                    leftIcon: Icons.person_2_outlined,
+                    onPressed: () => {})
               ],
             ),
           ),
-          SizedBox(
-            width: double.infinity,
-            child: BlaButton(
-              text: 'Search',
-              onPress: _handleSubmitForm,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(0),
-                  topRight: Radius.circular(0),
-                  bottomLeft: Radius.circular(BlaSpacings.radius),
-                  bottomRight: Radius.circular(BlaSpacings.radius),
-                ),
-              ),
-              buttonType: ButtonType.primary,
-            ),
-          )
-        ],
-      ),
-    );
-  }
 
-  /// Builds a row showing location information or a placeholder label.
-  /// Tapping the row triggers onTap, while tapping the optional endIcon triggers onEndIconTap.
-  Widget _buildLocationRow({
-    required String label,
-    required IconData icon,
-    IconData? endIcon,
-    void Function()? onTap,
-    void Function()? onEndIconTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0),
-        child: Row(
-          children: [
-            Icon(icon, color: BlaColors.iconNormal),
-            const SizedBox(width: 16),
-            Text(
-              label,
-              style: BlaTextStyles.label.copyWith(
-                color: BlaColors.textNormal,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Spacer(),
-            if (endIcon != null)
-              InkWell(
-                onTap: onEndIconTap,
-                child: Icon(endIcon, color: BlaColors.primary),
-              ),
-          ],
-        ),
-      ),
-    );
+          // 5 - Launch a search
+          BlaButton(text: 'Search', onPressed: onSubmit),
+        ]);
   }
-
-  /// Builds a row for selecting a date.
-  Widget _buildDateRow({required DateTime date, void Function()? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0),
-        child: Row(
-          children: [
-            Icon(Icons.calendar_month_rounded, color: BlaColors.iconLight),
-            const SizedBox(width: 16),
-            Text(
-              DateTimeUtils.formatDateTime(date),
-              style: BlaTextStyles.label.copyWith(
-                color: BlaColors.textNormal,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Builds a row for selecting the number of seats.
-  Widget _buildSeatsRow({required int seats, void Function()? onTap}) {
-    return InkWell(
-      onTap: () async {
-        final result = await Navigator.of(context).push<int>(
-          AnimationUtils.createBottomToTopRoute(
-            SeatBookingScreen(initialSeats: requestedSeats),
-          ),
-        );
-        if (result != null) {
-          _handleSeatsChanged(result);
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0),
-        child: Row(
-          children: [
-            Icon(Icons.person_outline, color: BlaColors.iconLight),
-            const SizedBox(width: 16),
-            Text(
-              '$requestedSeats',
-              style: BlaTextStyles.label.copyWith(
-                color: BlaColors.textNormal,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  
 }

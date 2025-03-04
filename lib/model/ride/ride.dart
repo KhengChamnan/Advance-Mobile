@@ -1,4 +1,4 @@
-import 'locations.dart';
+import 'package:week_3_blabla_project/model/ride/locations.dart';
 
 import '../../utils/date_time_util.dart';
 import '../user/user.dart';
@@ -7,7 +7,7 @@ enum RideStatus {
   created,
   published,
   ongoing,
-  finished
+  finished;
 }
 
 ///
@@ -50,11 +50,5 @@ class Ride {
     return 'Ride from $departureLocation at ${DateTimeUtils.formatDateTime(departureDate)} '
         'to $arrivalLocation arriving at ${DateTimeUtils.formatDateTime(arrivalDateTime)}, '
         'Driver: $driver, Seats: $availableSeats, Price: \$${pricePerSeat.toStringAsFixed(2)}';
-  }
-    
-  String toString2() {
-    return 'Ride from $departureLocation at ${DateTimeUtils.formatDateTime(departureDate)} '
-        'to $arrivalLocation arriving at ${DateTimeUtils.formatDateTime(arrivalDateTime)}, '
-        'Driver: ${driver.firstName} ${driver.firstName}, Seats: $availableSeats, Price: \$${pricePerSeat.toStringAsFixed(2)}';
   }
 }
